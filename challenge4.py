@@ -42,7 +42,7 @@ dns = pyrax.cloud_dns
 
 # Check to see if domain exist
 try:
-    dom = dns.find(name=fqdn)
+    domain = dns.find(name=fqdn)
     print "Domain found: Continuing"
 except e.NotFound as err:
     print "Domain not found: Creating domain."
@@ -60,12 +60,18 @@ record = [{
             "ttl": 300,
             }]
 try:
-    dom = dns.find(name=fqdn) 
-    new_record = dom.add_records(record)
+    #dom = dns.find(name=fqdn) 
+    new_record = domain.add_record(record)
 except e.DomainRecordAdditionFailed as err:
     print "ERROR: {}".format(err)
     sys.exit()
 
-print ("Record added\n"
-        "{}"
-        .format(new_record))
+print ("Record added!\n"
+        "Domain: {}\n"
+        "Type: {}\n"
+        "Data: {}\n"
+        "TTL: {}"
+        .format(new_record[0].name,
+                new_record[0].type,
+                new_record[0].data,
+                new_record[0].ttl))

@@ -42,7 +42,7 @@ except e:
     sys.exit()
 
 instance_info = dbass.get(instance.id)
-print instance_info
+
 while instance_info.status != 'ACTIVE':
         sleep(10)
         now = strftime('%Y-%m-%d %H:%M:%S UTC', gmtime())
@@ -52,7 +52,7 @@ while instance_info.status != 'ACTIVE':
         sys.stdout.flush()
 
 # Create a new database on the instance
-print '\nCreating database {}.'.format(db_name)
+print '\n\nCreating database {}.'.format(db_name)
 try:
     create_db = instance.create_database(db_name)
 except e:
@@ -63,18 +63,21 @@ except e:
 password = ''.join(random.choice(string.ascii_uppercase +
                     string.digits) for x in range(8))
 
-# Create user account for the database
-print 'Creating user \'admin\' with password {}.'.format(password)
+# Create 'admin' user account for the database
+print 'Creating user \'admin\' with a random password.'
 try:
-    create_user = instance.create_user(admin,password,
+    create_user = instance.create_user('admin',password,
                  database_names=[db_name])
 except e:
     print 'Error creating user: {}'.format(e)
     sys.exit()
 
-print ('Database created successfully!\n'
-        'Database: {}'
-        'Hostname: {}'
-        'Username: admin'
+# Once all is done, relay information to user
+print ('\nDatabase created successfully!\n'
+        'Hostname: {}\n'
+        'Database: {}\n'
+        'Username: admin\n'
         'Password: {}'
-        .format(db_name,instance_info.hostname,password))
+        .format(instance_info.hostname,
+                db_name,
+                password))

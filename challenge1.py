@@ -61,14 +61,13 @@ for server_name in server_names:
                                 .format(server.status,server.progress))
                 sys.stdout.flush()
 
-    # Add networking information
-    server_info['networks'] = server.networks
-
     # Now that server is ACTIVE present all information
     print ('\nBuild Complete!\n'
             'Name: {}\n'
             'Admin Password: {}\n'
-            'Public IPs: {}, {}\n'
-            .format(server_info['name'],server_info['admin_pass'],
-                server_info['networks']['public]'][0],
-                server_info['networks']['public]'][1]))
+            'Public IPv4: {}\n'
+            'Public IPv6: {}\n'
+            .format(server_info['name'],
+                    server_info['admin_pass'],
+                    server.accessIPv4,
+                    server.accessIPv6))
