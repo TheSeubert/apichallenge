@@ -60,7 +60,6 @@ record = [{
             "ttl": 300,
             }]
 try:
-    #dom = dns.find(name=fqdn) 
     new_record = domain.add_record(record)
 except e.DomainRecordAdditionFailed as err:
     print "ERROR: {}".format(err)
