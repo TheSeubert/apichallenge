@@ -13,7 +13,7 @@ from time import sleep
 # User configurable settings
 
 # Set varaibles to be used through the program
-container_name = "StaticWebsite"
+container_name = 'StaticWebsite'
 
 # Non-configurable code is below
 # Statically configured credentials file
@@ -39,28 +39,69 @@ try:
     print ('Success! Container {} has been created, and made public on'
             ' the CDN.').format(container_name)
 except Exception, e:
-    print "Error: {}".format(e)
+    print 'Error: {}'.format(e)
 
 # We set the static index page to be served
 try:
-    index_file = "index.html"
-    index_data =    "<html>"
-                    "<head>"
-                    "<title> My Test Page</title>"
-                    "</head>"
-                    "<body bgcolor=\"white\" text=\"blue\">"
-                    "<h1> My first page </h1>"
-                    "A static index page does exist here?"
-                    "</body>"
-                    "</html>"
+    index_file = 'index.html'
+    index_data = ('<html>'
+                  '<head>'
+                  '<title> My Test Page</title>'
+                  '</head>'
+                  '<body bgcolor=\'white\' text=\'blue\'>'
+                  '<h1> My first page </h1>'
+                  'A static index page does exist here?'
+                  '</body>'
+                  '</html>')
 
 
     container.set_web_index_page(index_file)
-    container.store_object(index_file,index_data,content_type="text/html")
-    print "Complete! A static index page has been created. Visit {} to test."
-            .format(container.cdn_uri)
+    container.store_object(index_file,index_data,content_type='text/html')
+    print ('A static index page has been created. Visit {}'
+            ' to test.').format(container.cdn_uri)
 except Exception, e:
-    print "Error: {}".format(e)
-    
+    print 'Error: {}'.format(e)
+
+# Initilize pyrax for clouddns
+dns = pyrax.cloud_dns
+
 # We create CNAME records to make the URL more user friendly
-container_name = raw_input("Enter the CNAME you want to create: ")
+fqdn = raw_input('Enter the CNAME you want to create: ')
+split_fqdn = fqdn.split('.')
+root_fqdn = split_fqdn[1]+'.'+split_fqdn[2]
+
+# Check to see if domain exist
+try:
+    domain = dns.find(name=root_fqdn)
+    print 'Domain found: Continuing'
+except e.NotFound as err:
+    print 'Domain not found: Creating domain {}.'.format(root_fqdn)
+    try:
+        domain = dns.create(name=root_fqdn,
+                emailAddress='admin@'+root_fqdn,
+                ttl=900, comment='automaticly added domain')
+    except e.DomainCreationFailed as e:
+        print 'Domain creation failed:', e
+        sys.exit()
+print 'Adding DNS CNAME record.'
+record = [{
+            'type': 'CNAME',
+            'name': fqdn,
+            'data': container.cdn_uri,
+            'ttl': 300,
+            }]
+try:
+    new_record = domain.add_record(record)
+except e.DomainRecordAdditionFailed as err:
+    print 'ERROR: {}'.format(err)
+    sys.exit()
+
+print ('Record added!\n'
+        'Domain: {}\n'
+        'Type: {}\n'
+        'Data: {}\n'
+        'TTL: {}'
+        .format(new_record[0].name,
+                new_record[0].type,
+                new_record[0].data,
+                new_record[0].ttl))
