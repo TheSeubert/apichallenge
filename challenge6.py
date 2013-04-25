@@ -7,11 +7,7 @@ import os
 import pyrax
 import pyrax.exceptions as e
 import sys
-import time
-from time import sleep
-from time import gmtime, strftime
 import string
-import random
 
 # Non-configurable code is below
 # Statically configured credentials file
