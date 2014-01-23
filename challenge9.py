@@ -16,13 +16,13 @@ credentials_file = os.path.expanduser('~/.rackspace_cloud_credentials')
 
 # Configure arguments to run this script
 parser = argparse.ArgumentParser(description='Creates a server based '
-                                    'off of a FQDN complete with DNS.')
+                                 'off of a FQDN complete with DNS.')
 parser.add_argument('fqdn', metavar='fqdn', type=str,
-                   help='The fully qualified domain name to use')
+                    help='The fully qualified domain name to use')
 parser.add_argument('image', type=str,
-                   help='ID of image to build server with.')
+                    help='ID of image to build server with.')
 parser.add_argument('flavor', type=int,
-                   help='ID of flavor to build server with.')
+                    help='ID of flavor to build server with.')
 # Set varaibles to be used through the program
 args = parser.parse_args()
 fqdn = args.fqdn
@@ -34,12 +34,12 @@ try:
     pyrax.set_credential_file(credentials_file)
 except e.AuthenticationFailed:
     print ('Authentication Failed: Ensure valid credentials in {}'
-            .format(credentials_file))
+           .format(credentials_file))
 except e.FileNotFound:
     print ('File Not Found: Make sure a valid credentials file is located at'
-            '{}'.format(credentials_file))
+           '{}'.format(credentials_file))
 
-# Initilize pyrax for cloudservers  
+# Initilize pyrax for cloudservers
 cs = pyrax.cloudservers
 
 # Create a server off of the users input
@@ -48,9 +48,9 @@ print "\nCreating a new server."
 create_server = cs.servers.create(fqdn, image, flavor)
 
 # Server information stored in dictionary for easy access
-server_info = {'id' : create_server.id,
-                'name' : fqdn,
-                'admin_pass' : create_server.adminPass}
+server_info = {'id': create_server.id,
+               'name': fqdn,
+               'admin_pass': create_server.adminPass}
 # Give the end user a status update
 print 'Building Server {}'.format(fqdn)
 
@@ -66,25 +66,26 @@ while server.status != 'ACTIVE':
             sys.exit()
         else:
             sys.stdout.write('\rServer Status: {} {}%'
-                            .format(server.status,server.progress))
+                             .format(server.status, server.progress))
             sys.stdout.flush()
 
 # Now that server is ACTIVE present all information
 print ('\n\nBuild Complete!\n'
-        'Name: {}\n'
-        'Admin Password: {}\n'
-        'Public IPv4: {}\n'
-        'Public IPv6: {}\n'
-        .format(server_info['name'],
-                server_info['admin_pass'],
-                server.accessIPv4,
-                server.accessIPv6))
+       'Name: {}\n'
+       'Admin Password: {}\n'
+       'Public IPv4: {}\n'
+       'Public IPv6: {}\n'
+       .format(server_info['name'],
+               server_info['admin_pass'],
+               server.accessIPv4,
+               server.accessIPv6))
 
 # Create DNS record based off of the FQDN that was received
 # Initilize pyrax for clouddns
 dns = pyrax.cloud_dns
 
-print "\nCreating an A record based off of the provided FQDN and the new server."
+print ('\nCreating an A record based off of the provided FQDN and'
+       'the new server.')
 # Check to see if domain exist
 try:
     domain = dns.find(name=fqdn)
@@ -92,18 +93,18 @@ try:
 except e.NotFound as err:
     print "Domain not found: Creating domain."
     try:
-        domain = dns.create(name=fqdn, emailAddress="admin@"+fqdn,
-                ttl=900, comment="automaticly added domain")
+        domain = dns.create(name=fqdn, emailAddress="admin@" + fqdn,
+                            ttl=900, comment="automaticly added domain")
     except e.DomainCreationFailed as e:
         print "Domain creation failed:", e
         sys.exit()
 print "Adding DNS A record."
 record = [{
-            "type": 'A',
-            "name": fqdn,
-            "data": server.accessIPv4,
-            "ttl": 300,
-            }]
+    "type": 'A',
+    "name": fqdn,
+    "data": server.accessIPv4,
+    "ttl": 300,
+}]
 try:
     new_record = domain.add_record(record)
 except e.DomainRecordAdditionFailed as err:
@@ -111,4 +112,4 @@ except e.DomainRecordAdditionFailed as err:
     sys.exit()
 
 print ("DNS Record added pointing from {} to {}"
-        .format(fqdn,server.accessIPv4))
+       .format(fqdn, server.accessIPv4))

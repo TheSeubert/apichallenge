@@ -24,12 +24,12 @@ try:
     pyrax.set_credential_file(credentials_file)
 except e.AuthenticationFailed:
     print ('Authentication Failed: Ensure valid credentials in {}'
-            .format(credentials_file))
+           .format(credentials_file))
 except e.FileNotFound:
     print ('File Not Found: Make sure a valid credentials file is located at'
-            '{}'.format(credentials_file))
+           '{}'.format(credentials_file))
 
-# Initilize pyrax for cloudservers  
+# Initilize pyrax for cloudservers
 cf = pyrax.cloudfiles
 
 # Create the specified container
@@ -37,7 +37,7 @@ try:
     container = cf.create_container(container_name)
     container.make_public()
     print ('Success! Container {} has been created, and made public on'
-            ' the CDN.').format(container_name)
+           ' the CDN.').format(container_name)
 except Exception, e:
     print 'Error: {}'.format(e)
 
@@ -54,11 +54,10 @@ try:
                   '</body>'
                   '</html>')
 
-
     container.set_web_index_page(index_file)
-    container.store_object(index_file,index_data,content_type='text/html')
+    container.store_object(index_file, index_data, content_type='text/html')
     print ('A static index page has been created. Visit {}'
-            ' to test.').format(container.cdn_uri)
+           ' to test.').format(container.cdn_uri)
 except Exception, e:
     print 'Error: {}'.format(e)
 
@@ -68,7 +67,7 @@ dns = pyrax.cloud_dns
 # We create CNAME records to make the URL more user friendly
 fqdn = raw_input('Enter the CNAME you want to create: ')
 split_fqdn = fqdn.split('.')
-root_fqdn = split_fqdn[1]+'.'+split_fqdn[2]
+root_fqdn = split_fqdn[1] + '.' + split_fqdn[2]
 
 # Check to see if domain exist
 try:
@@ -78,18 +77,18 @@ except e.NotFound as err:
     print 'Domain not found: Creating domain {}.'.format(root_fqdn)
     try:
         domain = dns.create(name=root_fqdn,
-                emailAddress='admin@'+root_fqdn,
-                ttl=900, comment='automaticly added domain')
+                            emailAddress='admin@' + root_fqdn,
+                            ttl=900, comment='automaticly added domain')
     except e.DomainCreationFailed as e:
         print 'Domain creation failed:', e
         sys.exit()
 print 'Adding DNS CNAME record.'
 record = [{
-            'type': 'CNAME',
-            'name': fqdn,
-            'data': container.cdn_uri,
-            'ttl': 300,
-            }]
+    'type': 'CNAME',
+    'name': fqdn,
+    'data': container.cdn_uri,
+    'ttl': 300,
+}]
 try:
     new_record = domain.add_record(record)
 except e.DomainRecordAdditionFailed as err:
@@ -97,11 +96,11 @@ except e.DomainRecordAdditionFailed as err:
     sys.exit()
 
 print ('Record added!\n'
-        'Domain: {}\n'
-        'Type: {}\n'
-        'Data: {}\n'
-        'TTL: {}'
-        .format(new_record[0].name,
-                new_record[0].type,
-                new_record[0].data,
-                new_record[0].ttl))
+       'Domain: {}\n'
+       'Type: {}\n'
+       'Data: {}\n'
+       'TTL: {}'
+       .format(new_record[0].name,
+               new_record[0].type,
+               new_record[0].data,
+               new_record[0].ttl))

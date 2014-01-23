@@ -21,10 +21,10 @@ try:
     pyrax.set_credential_file(credentials_file)
 except e.AuthenticationFailed:
     print ('Authentication Failed: Ensure valid credentials in {}'
-            .format(credentials_file))
+           .format(credentials_file))
 except e.FileNotFound:
     print ('File Not Found: Make sure a valid credentials file is located at'
-            '{}'.format(credentials_file))
+           '{}'.format(credentials_file))
 
 # Initilize pyrax for cloudfiles
 cf = pyrax.cloudfiles
@@ -35,7 +35,6 @@ try:
     container = cf.create_container(container_name)
     container.make_public()
     print ('Success! Container {} has been created, and made public on'
-            ' the CDN.').format(container_name)
+           ' the CDN.').format(container_name)
 except Exception, e:
     print "Error: {}".format(e)
-

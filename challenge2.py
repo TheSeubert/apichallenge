@@ -1,11 +1,26 @@
 #!/usr/bin/env python
+# Copyright 2013 Rackspace
+# All Rights Reserved.
 #
-#    Based off of user input, will image a cloud server and create a
-#    new 512MB server from this image.
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Seethe
+#    License for the specific language governing permissions and limitations
+#    under the License.
+#
+# image_and_deploy_server.py -
+#    Displays a list of servers on account, and based off of selection, will
+#    image a cloud server and create a new 512MB server from this image.
 
 import os
 import pyrax
-import pyrax.exceptions as e
+import pyrax.exceptions as exc
 import sys
 from time import sleep
 
@@ -15,18 +30,18 @@ credentials_file = os.path.expanduser('~/.rackspace_cloud_credentials')
 
 # Check to make sure we can access the credentials file and authenticate.
 try:
-	pyrax.set_credential_file(credentials_file)
-except e.AuthenticationFailed:
-	print ('Authentication Failed: Ensure valid credentials in {}'
-            .format(credentials_file))
-except e.FileNotFound:
-    print ('File Not Found: Make sure a valid credentials file is located at'
-		    '{}'.format(credentials_file))
+    pyrax.set_credential_file(credentials_file)
+except exc.AuthenticationFailed:
+    print ('Authentication Failed: Ensure valid credentials in {}'.format(
+        credentials_file))
+except exc.FileNotFound:
+    print ('File Not Found: Make sure a valid credentials file is located '
+           'at {}'.format(credentials_file))
 
-# Initilize pyrax for cloudservers in DFW
+# Alias the cloudfiles client in DFW
 cs_dfw = pyrax.cloudservers
 
-# Initilize pyrax for cloudservers in ORD
+# Alias the cloudfiles client in ORD
 cs_ord = pyrax.connect_to_cloudservers(region="ORD")
 
 # Initilize our dictionary of choices
@@ -41,14 +56,14 @@ print "Select a server from which an image will be created."
 print "Servers in DFW Region:"
 for position, server in enumerate(servers_dfw):
     print "1.{}: {}".format(position, server.name)
-    choices["1."+str(position)] = server.id
+    choices["1." + str(position)] = server.id
 
 print "Servers in ORD Region:"
 for position, server in enumerate(servers_ord):
     print "2.{}: {}".format(position, server.name)
-    choices["2."+str(position)] = server.id
+    choices["2." + str(position)] = server.id
 
-# Process which server the end user wants to image    
+# Process which server the end user wants to image
 selection = None
 while selection not in choices:
     if selection is not None:
@@ -76,8 +91,8 @@ while image.status != 'ACTIVE':
             print 'Image build error! Status: {}'.format(image.status)
             sys.exit()
         else:
-            sys.stdout.write('\rImage Status: {} {}%'
-                            .format(image.status,image.progress))
+            sys.stdout.write('\rImage Status: {} {}%'.format(image.status,
+                                                             image.progress))
             sys.stdout.flush()
 
 # Create a server off of this new image
@@ -86,9 +101,9 @@ print "\nCreating a new server off of this iamge now..."
 create_server = cs.servers.create(image_name, image, "2")
 
 # Server information stored in dictionary for easy access
-server_info = {'id' : create_server.id,
-                'name' : image_name,
-                'admin_pass' : create_server.adminPass}
+server_info = {'id': create_server.id,
+               'name': image_name,
+               'admin_pass': create_server.adminPass}
 # Give the end user a status update
 print 'Building Server {}'.format(image_name)
 
@@ -103,17 +118,17 @@ while server.status != 'ACTIVE':
             print 'Server build error! Status: {}'.format(server.status)
             sys.exit()
         else:
-            sys.stdout.write('\rServer Status: {} {}%'
-                            .format(server.status,server.progress))
+            sys.stdout.write('\rServer Status: {} {}%'.format(server.status,
+                                                              server.progress))
             sys.stdout.flush()
 
 # Now that server is ACTIVE present all information
 print ('\n\nBuild Complete!\n'
-        'Name: {}\n'
-        'Admin Password: {}\n'
-        'Public IPv4: {}\n'
-        'Public IPv6: {}\n'
-        .format(server_info['name'],
-                server_info['admin_pass'],
-                server.accessIPv4,
-                server.accessIPv6))
+       'Name: {}\n'
+       'Admin Password: {}\n'
+       'Public IPv4: {}\n'
+       'Public IPv6: {}\n'
+       .format(server_info['name'],
+               server_info['admin_pass'],
+               server.accessIPv4,
+               server.accessIPv6))
